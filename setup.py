@@ -1,0 +1,26 @@
+# coding='utf-8'
+
+from setuptools import setup
+long_description = open('README.md').read()
+setup(
+    name='xymap',
+    version='0.0.1',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    author='Yang Li',
+    author_email='leeyang1991@gmail.com',
+    packages=['xymap'],
+    url='https://github.com/leeyang1991/xymap',
+    python_requires='>=3',
+    install_requires=[
+    'matplotlib',
+    'numpy',
+    'scipy',
+    'gdal',
+    'tqdm',
+    'pandas',
+    'seaborn',
+    'sklearn',
+    'requests',
+    ],
+)

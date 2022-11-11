@@ -1,0 +1,12 @@
+Metadata-Version: 2.1
+Name: xymap
+Version: 0.0.1
+Home-page: https://github.com/leeyang1991/xymap
+Author: Yang Li
+Author-email: leeyang1991@gmail.com
+Requires-Python: >=3
+Description-Content-Type: text/markdown
+
+# xymap
+data processing tools
+Bivariate colormap solutions. Inspired by [xycmap](https://github.com/rbjansen/xycmap).
