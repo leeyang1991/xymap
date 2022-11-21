@@ -1,4 +1,5 @@
 # xymap
+Ongoing project
 
 Bivariate colormap solutions.
 
