@@ -1,9 +1,6 @@
-matplotlib
+xycmap
 numpy
-scipy
+Pillow
 gdal
 tqdm
 pandas
-seaborn
-sklearn
-requests
