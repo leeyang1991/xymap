@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: xymap
-Version: 0.0.2
+Version: 0.0.3
 Home-page: https://github.com/leeyang1991/xymap
 Author: Yang Li
 Author-email: leeyang1991@gmail.com
@@ -9,6 +9,7 @@ Description-Content-Type: text/markdown
 License-File: LICENSE
 
 # xymap
+Ongoing project
 
 Bivariate colormap solutions.
 
