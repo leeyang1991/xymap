@@ -7,6 +7,8 @@ from matplotlib import pyplot as plt
 from osgeo import osr
 from osgeo import gdal
 import pandas as pd
+from os.path import *
+
 
 class Bivariate_plot:
 
@@ -97,10 +99,10 @@ class Bivariate_plot:
         # define a projection and extent
         raster = gdal.Open(outf)
         geotransform = raster.GetGeoTransform()
-        originX, originY, pixelWidth, pixelHeight = GDAL_func().get_raster_transformations(outf)
+        originX, originY, pixelWidth, pixelHeight = GDAL_func().get_raster_transformations(tif1)
         raster.SetGeoTransform((originX, pixelWidth, 0, originY, 0, pixelHeight))
         outRasterSRS = osr.SpatialReference()
-        projection = GDAL_func().get_raster_projections(outf)
+        projection = GDAL_func().get_raster_projections(tif1)
         # outRasterSRS.ImportFromEPSG(4326)
         # outRasterSRS.ImportFromEPSG(projection)
         # raster.SetProjection(outRasterSRS.ExportToWkt())
@@ -123,7 +125,11 @@ class Bivariate_plot:
         y_ticks = [round(y, 2) for y in y_ticks]
         # x_ticks = x_ticks[::-1]
         # y_ticks = y_ticks[::-1]
+        zcmap_255 = zcmap * 255
+        zcmap_255 = zcmap_255.astype('uint8')
+        zcmap = zcmap_255
         plt.imshow(zcmap)
+
         plt.xticks(list(range(len(x_ticks)))[::10], x_ticks[::10], rotation=90)
         plt.yticks(list(range(len(y_ticks)))[::10], y_ticks[::10])
         plt.xlabel(x_label)
@@ -272,3 +278,30 @@ class GDAL_func:
         df = pd.DataFrame(data=data, columns=columns[0])
         return df
 
+
+class Test:
+
+    def __init__(self):
+
+        pass
+
+    def test(self):
+        tif1 = '/Users/liyang/Desktop/detrend_zscore_test_factors/results/tif/Bivarite_plot_partial_corr/partial_corr_trend/detrend_05_scenario1/detrend_during_early_peak_MODIS_LAI_zscore.tif'
+        tif2 = '/Users/liyang/Desktop/detrend_zscore_test_factors/results/tif/Bivarite_plot_partial_corr/long_term_corr_tif/detrend/detrend_during_early_peak_MODIS_LAI_zscore.tif'
+        outf = 'test.tif'
+        x_label = 'moving_window_trend'
+        y_label = 'long_term_trend'
+        min1 = -0.01
+        max1 = 0.01
+        min2 = -0.3
+        max2 = 0.3
+        Bivariate_plot().plot_bivariate_map(tif1, tif2, x_label, y_label, min1, max1, min2, max2, outf)
+
+
+
+def main():
+    Test().test()
+    pass
+
+if __name__ == '__main__':
+    main()
