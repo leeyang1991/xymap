@@ -97,10 +97,10 @@ class Bivariate_plot:
         # define a projection and extent
         raster = gdal.Open(outf)
         geotransform = raster.GetGeoTransform()
-        originX, originY, pixelWidth, pixelHeight = GDAL_func().get_raster_transformations(raster)
+        originX, originY, pixelWidth, pixelHeight = GDAL_func().get_raster_transformations(outf)
         raster.SetGeoTransform((originX, pixelWidth, 0, originY, 0, pixelHeight))
         outRasterSRS = osr.SpatialReference()
-        projection = GDAL_func().get_raster_projections(raster)
+        projection = GDAL_func().get_raster_projections(outf)
         # outRasterSRS.ImportFromEPSG(4326)
         # outRasterSRS.ImportFromEPSG(projection)
         # raster.SetProjection(outRasterSRS.ExportToWkt())
