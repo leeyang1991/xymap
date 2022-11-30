@@ -31,12 +31,12 @@ class Bivariate_plot:
         return zcmap
         pass
 
-    def plot_bivariate_map(self, tif1, tif2, x_label, y_label, min1, max1, min2, max2, outf,n=(5,5), legend_title=''):
+    def plot_bivariate_map(self, tif1, tif2, tif1_label, tif2_label, min1, max1, min2, max2, outf,n=(5,5), legend_title=''):
         '''
         :param tif1: input tif1
         :param tif2: input tif2
-        :param x_label: x label
-        :param y_label: y label
+        :param tif1_label: tif1 label for legend
+        :param tif2_label: tif2 label for legend
         :param min1: min value of tif1
         :param max1: max value of tif1
         :param min2: min value of tif2
@@ -132,8 +132,8 @@ class Bivariate_plot:
 
         plt.xticks(list(range(len(x_ticks)))[::10], x_ticks[::10], rotation=90)
         plt.yticks(list(range(len(y_ticks)))[::10], y_ticks[::10])
-        plt.xlabel(x_label)
-        plt.ylabel(y_label)
+        plt.xlabel(tif1_label)
+        plt.ylabel(tif2_label)
         plt.title(legend_title)
         plt.tight_layout()
         plt.savefig(outf.replace('.tif', '.pdf'))
@@ -279,28 +279,7 @@ class GDAL_func:
         return df
 
 
-class Test:
-
-    def __init__(self):
-
-        pass
-
-    def test(self):
-        tif1 = '/Users/liyang/Desktop/detrend_zscore_test_factors/results/tif/Bivarite_plot_partial_corr/partial_corr_trend/detrend_05_scenario1/detrend_during_early_peak_MODIS_LAI_zscore.tif'
-        tif2 = '/Users/liyang/Desktop/detrend_zscore_test_factors/results/tif/Bivarite_plot_partial_corr/long_term_corr_tif/detrend/detrend_during_early_peak_MODIS_LAI_zscore.tif'
-        outf = 'test.tif'
-        x_label = 'moving_window_trend'
-        y_label = 'long_term_trend'
-        min1 = -0.01
-        max1 = 0.01
-        min2 = -0.3
-        max2 = 0.3
-        Bivariate_plot().plot_bivariate_map(tif1, tif2, x_label, y_label, min1, max1, min2, max2, outf)
-
-
-
 def main():
-    Test().test()
     pass
 
 if __name__ == '__main__':

@@ -1,5 +1,6 @@
 # xymap
-Ongoing project
+### Ongoing project
+This is Alpha version
 
 Bivariate colormap solutions.
 
