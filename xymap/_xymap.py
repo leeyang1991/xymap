@@ -17,26 +17,18 @@ class Bivariate_plot:
         pass
 
     def gen_zcmap(self, n):
-        # corner_colors = ("#0058B7", '#FFFFFF', "#8F00FF", "#FF0000")
         corner_colors = ("#1D2D69", '#A1FF64', "#E9FF64", "#BD2ECC")
-        # corner_colors = ("#DC9EC5", '#788AA9', "#F3F3F3", "#8CCBA4")
-        # corner_colors = ("#FF0000", '#000000', "#FFFFFF", "#0058B7")
         zcmap = xycmap.custom_xycmap(corner_colors=corner_colors, n=n)
-        # xcmap = sns.diverging_palette(180, 360,s=100,l=75, as_cmap=True)
-        # ycmap = sns.diverging_palette(90, 270,s=100,l=75, as_cmap=True)
-        # zcmap = xycmap.mean_xycmap(xcmap=xcmap, ycmap=ycmap, n=n)
-        # plt.imshow(zcmap)
-        # plt.show()
-        # plt.close()
         return zcmap
         pass
 
-    def plot_bivariate_map(self, tif1, tif2, tif1_label, tif2_label, min1, max1, min2, max2, outf,n=(5,5), legend_title=''):
+    def plot_bivariate_map(self, tif1, tif2, tif1_label, tif2_label, min1, max1, min2, max2, outf,
+                           n=(5,5), n_legend=(101,101), zcmap=None, legend_title=''):
         '''
         :param tif1: input tif1
         :param tif2: input tif2
-        :param tif1_label: tif1 label for legend
-        :param tif2_label: tif2 label for legend
+        :param tif1_label: tif1 label
+        :param tif2_label: tif2 label
         :param min1: min value of tif1
         :param max1: max value of tif1
         :param min2: min value of tif2
@@ -46,7 +38,13 @@ class Bivariate_plot:
         :param legend_title: legend title
         :output: bivariate map
         '''
-        zcmap = self.gen_zcmap(n)
+        if zcmap is None:
+            zcmap = self.gen_zcmap(n)
+            n = (zcmap.shape[0], zcmap.shape[1])
+            zcmap_legend = self.gen_zcmap(n_legend)
+        else:
+            zcmap_legend = zcmap
+
         arr1 = GDAL_func().raster2array(tif1)
         arr2 = GDAL_func().raster2array(tif2)
         arr1 = np.array(arr1)
@@ -84,9 +82,7 @@ class Bivariate_plot:
                     if val1 >= bin1[i] and val1 <= bin1[i + 1]:
                         for j in range(len(bin2) - 1):
                             if val2 >= bin2[j] and val2 <= bin2[j + 1]:
-                                # print(zcmap[i][j])
                                 color = zcmap[j][i] * 255
-                                # print(color)
                                 temp.append(color)
             temp = np.array(temp)
             blend_arr.append(temp)
@@ -107,12 +103,11 @@ class Bivariate_plot:
         # outRasterSRS.ImportFromEPSG(projection)
         # raster.SetProjection(outRasterSRS.ExportToWkt())
         raster.SetProjection(projection)
-        n_plot = (101, 101)
-        zcmap = self.gen_zcmap(n_plot)
+
         x_ticks = []
         y_ticks = []
-        bin1 = np.linspace(min1, max1, n_plot[0] + 1)
-        bin2 = np.linspace(min2, max2, n_plot[1] + 1)
+        bin1 = np.linspace(min1, max1, n_legend[0] + 1)
+        bin2 = np.linspace(min2, max2, n_legend[1] + 1)
         for i in range(len(bin1) - 1):
             for j in range(len(bin2) - 1):
                 x_ticks.append((bin1[i] + bin1[i + 1]) / 2)
@@ -123,15 +118,19 @@ class Bivariate_plot:
         y_ticks.sort()
         x_ticks = [round(x, 2) for x in x_ticks]
         y_ticks = [round(y, 2) for y in y_ticks]
-        # x_ticks = x_ticks[::-1]
-        # y_ticks = y_ticks[::-1]
-        zcmap_255 = zcmap * 255
+        zcmap_255 = zcmap_legend * 255
         zcmap_255 = zcmap_255.astype('uint8')
-        zcmap = zcmap_255
-        plt.imshow(zcmap)
-
-        plt.xticks(list(range(len(x_ticks)))[::10], x_ticks[::10], rotation=90)
-        plt.yticks(list(range(len(y_ticks)))[::10], y_ticks[::10])
+        zcmap_legend = zcmap_255
+        plt.imshow(zcmap_legend)
+        if len(x_ticks) > 100:
+            plt.xticks(list(range(len(x_ticks)))[::10], x_ticks[::10], rotation=90)
+            plt.yticks(list(range(len(y_ticks)))[::10], y_ticks[::10])
+        elif len(x_ticks) > 50:
+            plt.xticks(list(range(len(x_ticks)))[::5], x_ticks[::5], rotation=90)
+            plt.yticks(list(range(len(y_ticks)))[::5], y_ticks[::5])
+        else:
+            plt.xticks(list(range(len(x_ticks))), x_ticks, rotation=90)
+            plt.yticks(list(range(len(y_ticks))), y_ticks)
         plt.xlabel(tif1_label)
         plt.ylabel(tif2_label)
         plt.title(legend_title)
@@ -277,7 +276,6 @@ class GDAL_func:
         # df = pd.DataFrame(data=data, columns=columns[0], index=index)
         df = pd.DataFrame(data=data, columns=columns[0])
         return df
-
 
 def main():
     pass
