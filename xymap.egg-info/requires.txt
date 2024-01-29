@@ -1,6 +1,6 @@
 xycmap
 numpy
-Pillow
 gdal
 tqdm
 pandas
+scipy

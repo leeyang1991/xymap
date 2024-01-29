@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: xymap
-Version: 0.0.5
+Version: 0.0.6
 Home-page: https://github.com/leeyang1991/xymap
 Author: Yang Li
 Author-email: leeyang1991@gmail.com
@@ -9,8 +9,21 @@ Description-Content-Type: text/markdown
 License-File: LICENSE
 
 # xymap
-Ongoing project
+### Ongoing project
+This is Alpha version
 
 Bivariate colormap solutions.
 
 Inspired by [xycmap](https://github.com/rbjansen/xycmap).
+
+#### Installation
+`pip install xymap`
+
+#### todo list:
+1. provide color ramps options
+2. add band palette to tif
+3. add user defined color ramps
+4. interpolate color ramps
+5. vector format support
+6. triangle mesh support [Done]
+

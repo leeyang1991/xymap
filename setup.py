@@ -4,7 +4,7 @@ from setuptools import setup
 long_description = open('README.md').read()
 setup(
     name='xymap',
-    version='0.0.5',
+    version='0.0.6',
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Yang Li',
@@ -15,9 +15,9 @@ setup(
     install_requires=[
     'xycmap',
     'numpy',
-    'Pillow',
     'gdal',
     'tqdm',
     'pandas',
+    'scipy',
     ],
 )

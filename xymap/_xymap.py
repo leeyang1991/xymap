@@ -18,7 +18,7 @@ from osgeo import osr
 from osgeo import gdal
 import pandas as pd
 from os.path import *
-
+from scipy.interpolate import griddata
 
 class Bivariate_plot:
 
@@ -128,9 +128,11 @@ class Bivariate_plot:
         y_ticks.sort()
         x_ticks = [round(x, 2) for x in x_ticks]
         y_ticks = [round(y, 2) for y in y_ticks]
+        y_ticks = y_ticks[::-1]
         zcmap_255 = zcmap_legend * 255
         zcmap_255 = zcmap_255.astype('uint8')
         zcmap_legend = zcmap_255
+        zcmap_legend = zcmap_legend[::-1]
         plt.imshow(zcmap_legend)
         if len(x_ticks) > 100:
             plt.xticks(list(range(len(x_ticks)))[::10], x_ticks[::10], rotation=90)
@@ -287,7 +289,147 @@ class GDAL_func:
         df = pd.DataFrame(data=data, columns=columns[0])
         return df
 
+
+class Ternary_plot:
+
+    def __init__(self,
+                 res = 1000,
+                 R_color = (200, 0, 0),
+                 G_color = (0, 200, 0),
+                 B_color = (0, 0, 200),
+                 O_color = (255, 255, 255),
+                 ):
+        self.res = res
+        self.R_color = R_color
+        self.G_color = G_color
+        self.B_color = B_color
+        self.O_color = O_color
+        self.rgb_arr = self.grid_triangle_legend()
+        pass
+
+    def run(self):
+        self.test()
+
+    def grid_triangle_legend(self):
+        R_color = self.R_color
+        G_color = self.G_color
+        B_color = self.B_color
+        O_color = self.O_color
+        res = self.res
+        R_pos = (0.5, np.cos(np.pi / 6))
+        G_pos = (0, 0)
+        B_pos = (1, 0)
+        O_pos = (0.5, 0.5 * np.tan(np.pi / 6))
+
+        x = [R_pos[0], G_pos[0], B_pos[0], O_pos[0]]
+        y = [R_pos[1], G_pos[1], B_pos[1], O_pos[1]]
+        R_chanel = [R_color[0], G_color[0], B_color[0], O_color[0]]
+        G_chanel = [R_color[1], G_color[1], B_color[1], O_color[1]]
+        B_chanel = [R_color[2], G_color[2], B_color[2], O_color[2]]
+        # exit()
+        grid_x, grid_y = np.mgrid[min(x):max(x):complex(0, res), min(y):max(y):complex(0, res) * np.cos(np.pi / 6)]
+        # print(grid_x)
+        # exit()
+        # grid_z = griddata((x, y), R_chanel, (grid_x, grid_y), method='linear')
+        grid_r = griddata((x, y), R_chanel, (grid_x, grid_y), method='cubic')
+        grid_g = griddata((x, y), G_chanel, (grid_x, grid_y), method='cubic')
+        grid_b = griddata((x, y), B_chanel, (grid_x, grid_y), method='cubic')
+        # grid_z = griddata((x, y), R_chanel, (grid_x, grid_y), method='cubic')
+        # plt.imshow(grid_r, cmap='Reds')
+        grid_r = grid_r / 255
+        grid_g = grid_g / 255
+        grid_b = grid_b / 255
+
+        grid_r[np.isnan(grid_r)] = 1
+        grid_g[np.isnan(grid_g)] = 1
+        grid_b[np.isnan(grid_b)] = 1
+
+        grid_r[grid_r < 0] = 0
+        grid_g[grid_g < 0] = 0
+        grid_b[grid_b < 0] = 0
+        grid_r[grid_r > 1] = 1
+        grid_g[grid_g > 1] = 1
+        grid_b[grid_b > 1] = 1
+
+        grid_r = np.array(grid_r, dtype=float)
+        grid_g = np.array(grid_g, dtype=float)
+        grid_b = np.array(grid_b, dtype=float)
+
+        grid_r_T = grid_r.T[::-1]
+        grid_g_T = grid_g.T[::-1]
+        grid_b_T = grid_b.T[::-1]
+
+        rgb_arr = np.dstack((grid_r_T, grid_g_T, grid_b_T))
+        rgb_arr = np.array(rgb_arr, dtype=float)
+
+        return rgb_arr
+
+    def get_point_position(self,x,y,z):
+        res = self.res
+        point = (x, y, z)
+        h = res * np.sin(np.pi / 3)
+        point_y = (1 - point[0]) * h
+        x_start = res / 2 * x
+        x_end = res / 2 + (res / 2 - x_start)
+        x_delta = x_end - x_start
+        point_x = x_start + x_delta * (point[2] / (point[1] + point[2]))
+        return point_x, point_y
+
+    def get_color(self,x,y,z):
+        rgb_arr = self.rgb_arr
+        sum_x_y_z = x + y + z
+        if round(sum_x_y_z, 3) != 1:
+            raise ValueError(f'sum of x,y,z should be 1\ninput x,y,z: {x}, {y}, {z}')
+        point_x, point_y = self.get_point_position(x,y,z)
+        r = int(point_y)-1
+        c = int(point_x)-1
+        if r < 0:
+            r = 0
+        if c < 0:
+            c = 0
+        color = rgb_arr[r][c]
+        # plt.scatter([int(point_x)], [int(point_y)], c=[color], s=100, edgecolors='gray', zorder=100)
+        # plt.text(point_x, point_y, str(point))
+        # plt.imshow(rgb_arr)
+        # plt.axis('equal')
+        # plt.axis('off')
+        # plt.show()
+        return color
+
+    def test(self):
+        x = 0.333333
+        y = 0.333333
+        z = 0.333333
+        color = self.get_color(x, y, z)
+        point_x, point_y = self.get_point_position(x, y, z)
+        rgb_arr = self.rgb_arr
+        plt.imshow(rgb_arr)
+        plt.scatter([int(point_x)], [int(point_y)], c=[color], s=1000, edgecolors='k', zorder=100, lw=2, marker="s")
+        plt.show()
+        pass
+
+class Test:
+    def __init__(self):
+
+        pass
+
+    def run(self):
+        tif1 = '/Volumes/SSD1T/temp_files/early_peak/early_peak/MCD_trend.tif'
+        tif2 = '/Volumes/SSD1T/temp_files/early_peak/late/MCD_trend.tif'
+        min1 = -0.0
+        max1 = 0.03
+        min2 = -0.05
+        max2 = 0.05
+        outf = '/Volumes/SSD1T/temp_files/early_peak/bivariate_map.tif'
+        n = (2, 2)
+        n_legend = (2, 2)
+        Bivariate_plot().plot_bivariate_map(tif1, tif2, 'early_peak', 'late', min1, max1, min2, max2, outf,
+                                            n=n, n_legend=n_legend)
+
+        pass
+
 def main():
+    Ternary_plot().test()
     pass
 
 if __name__ == '__main__':
