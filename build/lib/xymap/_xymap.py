@@ -294,16 +294,16 @@ class Ternary_plot:
 
     def __init__(self,
                  res = 1000,
-                 R_color = (200, 0, 0),
-                 G_color = (0, 200, 0),
-                 B_color = (0, 0, 200),
-                 O_color = (255, 255, 255),
+                 top_color = (255, 0, 0), # red
+                 left_color = (0, 255, 0), # green
+                 right_color = (0, 0, 255), # blue
+                 center_color = (255, 255, 255), # white
                  ):
         self.res = res
-        self.R_color = R_color
-        self.G_color = G_color
-        self.B_color = B_color
-        self.O_color = O_color
+        self.top_color = top_color
+        self.left_color = left_color
+        self.right_color = right_color
+        self.center_color = center_color
         self.rgb_arr = self.grid_triangle_legend()
         pass
 
@@ -311,55 +311,49 @@ class Ternary_plot:
         self.test()
 
     def grid_triangle_legend(self):
-        R_color = self.R_color
-        G_color = self.G_color
-        B_color = self.B_color
-        O_color = self.O_color
+        top_color = self.top_color
+        left_color = self.left_color
+        right_color = self.right_color
+        center_color = self.center_color
         res = self.res
-        R_pos = (0.5, np.cos(np.pi / 6))
-        G_pos = (0, 0)
-        B_pos = (1, 0)
-        O_pos = (0.5, 0.5 * np.tan(np.pi / 6))
 
-        x = [R_pos[0], G_pos[0], B_pos[0], O_pos[0]]
-        y = [R_pos[1], G_pos[1], B_pos[1], O_pos[1]]
-        R_chanel = [R_color[0], G_color[0], B_color[0], O_color[0]]
-        G_chanel = [R_color[1], G_color[1], B_color[1], O_color[1]]
-        B_chanel = [R_color[2], G_color[2], B_color[2], O_color[2]]
-        # exit()
+        top_pos = (0.5, np.cos(np.pi / 6))
+        left_pos = (0, 0)
+        right_pos = (1, 0)
+        center_pos = (0.5, 0.5 * np.tan(np.pi / 6))
+
+        x = [top_pos[0], left_pos[0], right_pos[0], center_pos[0]]
+        y = [top_pos[1], left_pos[1], right_pos[1], center_pos[1]]
+        band1 = [top_color[0], left_color[0], right_color[0], center_color[0]]
+        band2 = [top_color[1], left_color[1], right_color[1], center_color[1]]
+        band3 = [top_color[2], left_color[2], right_color[2], center_color[2]]
+
         grid_x, grid_y = np.mgrid[min(x):max(x):complex(0, res), min(y):max(y):complex(0, res) * np.cos(np.pi / 6)]
-        # print(grid_x)
-        # exit()
-        # grid_z = griddata((x, y), R_chanel, (grid_x, grid_y), method='linear')
-        grid_r = griddata((x, y), R_chanel, (grid_x, grid_y), method='cubic')
-        grid_g = griddata((x, y), G_chanel, (grid_x, grid_y), method='cubic')
-        grid_b = griddata((x, y), B_chanel, (grid_x, grid_y), method='cubic')
-        # grid_z = griddata((x, y), R_chanel, (grid_x, grid_y), method='cubic')
-        # plt.imshow(grid_r, cmap='Reds')
-        grid_r = grid_r / 255
-        grid_g = grid_g / 255
-        grid_b = grid_b / 255
 
-        grid_r[np.isnan(grid_r)] = 1
-        grid_g[np.isnan(grid_g)] = 1
-        grid_b[np.isnan(grid_b)] = 1
+        grid_band1 = griddata((x, y), band1, (grid_x, grid_y), method='cubic') / 255
+        grid_band2 = griddata((x, y), band2, (grid_x, grid_y), method='cubic') / 255
+        grid_band3 = griddata((x, y), band3, (grid_x, grid_y), method='cubic') / 255
 
-        grid_r[grid_r < 0] = 0
-        grid_g[grid_g < 0] = 0
-        grid_b[grid_b < 0] = 0
-        grid_r[grid_r > 1] = 1
-        grid_g[grid_g > 1] = 1
-        grid_b[grid_b > 1] = 1
+        grid_band1[np.isnan(grid_band1)] = 1
+        grid_band2[np.isnan(grid_band2)] = 1
+        grid_band3[np.isnan(grid_band3)] = 1
 
-        grid_r = np.array(grid_r, dtype=float)
-        grid_g = np.array(grid_g, dtype=float)
-        grid_b = np.array(grid_b, dtype=float)
+        grid_band1[grid_band1 < 0] = 0
+        grid_band2[grid_band2 < 0] = 0
+        grid_band3[grid_band3 < 0] = 0
+        grid_band1[grid_band1 > 1] = 1
+        grid_band2[grid_band2 > 1] = 1
+        grid_band3[grid_band3 > 1] = 1
 
-        grid_r_T = grid_r.T[::-1]
-        grid_g_T = grid_g.T[::-1]
-        grid_b_T = grid_b.T[::-1]
+        grid_band1 = np.array(grid_band1, dtype=float)
+        grid_band2 = np.array(grid_band2, dtype=float)
+        grid_band3 = np.array(grid_band3, dtype=float)
 
-        rgb_arr = np.dstack((grid_r_T, grid_g_T, grid_b_T))
+        grid_band1_T = grid_band1.T[::-1]
+        grid_band2_T = grid_band2.T[::-1]
+        grid_band3_T = grid_band3.T[::-1]
+
+        rgb_arr = np.dstack((grid_band1_T, grid_band2_T, grid_band3_T))
         rgb_arr = np.array(rgb_arr, dtype=float)
 
         return rgb_arr

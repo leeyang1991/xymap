@@ -15,5 +15,5 @@ Inspired by [xycmap](https://github.com/rbjansen/xycmap).
 3. add user defined color ramps
 4. interpolate color ramps
 5. vector format support
-6. triangle mesh support
+6. triangle mesh support `Done`
 
