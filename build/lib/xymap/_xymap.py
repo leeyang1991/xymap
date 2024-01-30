@@ -362,9 +362,9 @@ class Ternary_plot:
         res = self.res
         point = (x, y, z)
         h = res * np.sin(np.pi / 3)
-        point_y = (1 - point[0]) * h
-        x_start = res / 2 * x
-        x_end = res / 2 + (res / 2 - x_start)
+        point_y = (1 - point[0]) * h + 3
+        x_start = res / 2 * x + 1
+        x_end = res / 2 + (res / 2 - x_start) - 1
         x_delta = x_end - x_start
         if point[1] + point[2] == 0:
             point_x = x_start
@@ -378,12 +378,16 @@ class Ternary_plot:
         if round(sum_x_y_z, 3) != 1:
             raise ValueError(f'sum of x,y,z should be 1\ninput x,y,z: {x}, {y}, {z}')
         point_x, point_y = self.get_point_position(x,y,z)
-        r = int(point_y)-1
-        c = int(point_x)-1
+        r = int(point_y)
+        c = int(point_x)
         if r < 0:
-            r = 1
+            r = 2
         if c < 0:
-            c = 1
+            c = 2
+        if r > len(rgb_arr) - 1:
+            r = len(rgb_arr) - 1
+        if c > len(rgb_arr[0]) - 1:
+            c = len(rgb_arr[0]) - 1
         color = rgb_arr[r][c]
         # plt.scatter([int(point_x)], [int(point_y)], c=[color], s=100, edgecolors='gray', zorder=100)
         # plt.text(point_x, point_y, str(point))
@@ -395,10 +399,11 @@ class Ternary_plot:
 
     def test(self):
         x = 1
-        y = 0
+        y = .0
         z = 0
         color = self.get_color(x, y, z)
         point_x, point_y = self.get_point_position(x, y, z)
+        print(point_x, point_y, color)
         rgb_arr = self.rgb_arr
         plt.imshow(rgb_arr)
         plt.scatter([int(point_x)], [int(point_y)], c=[color], s=1000, edgecolors='k', zorder=100, lw=2, marker="s")
