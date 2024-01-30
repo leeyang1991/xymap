@@ -366,7 +366,10 @@ class Ternary_plot:
         x_start = res / 2 * x
         x_end = res / 2 + (res / 2 - x_start)
         x_delta = x_end - x_start
-        point_x = x_start + x_delta * (point[2] / (point[1] + point[2]))
+        if point[1] + point[2] == 0:
+            point_x = x_start
+        else:
+            point_x = x_start + x_delta * (point[2] / (point[1] + point[2]))
         return point_x, point_y
 
     def get_color(self,x,y,z):
@@ -378,9 +381,9 @@ class Ternary_plot:
         r = int(point_y)-1
         c = int(point_x)-1
         if r < 0:
-            r = 0
+            r = 1
         if c < 0:
-            c = 0
+            c = 1
         color = rgb_arr[r][c]
         # plt.scatter([int(point_x)], [int(point_y)], c=[color], s=100, edgecolors='gray', zorder=100)
         # plt.text(point_x, point_y, str(point))
@@ -391,9 +394,9 @@ class Ternary_plot:
         return color
 
     def test(self):
-        x = 0.333333
-        y = 0.333333
-        z = 0.333333
+        x = 1
+        y = 0
+        z = 0
         color = self.get_color(x, y, z)
         point_x, point_y = self.get_point_position(x, y, z)
         rgb_arr = self.rgb_arr
