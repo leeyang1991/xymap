@@ -242,6 +242,14 @@ class GDAL_func:
             df[var_name] = np.nan
         return df
 
+    def tif_to_spatial_dic(self, tif_path):
+        arr = self.raster2array(tif_path)
+        arr = np.array(arr)
+        arr[arr<-99999] = np.nan
+        arr[arr>99999] = np.nan
+        dic = self.spatial_arr_to_dic(arr)
+        return dic
+
 
     def dic_to_df(self, dic, key_col_str='__key__', col_order=None):
         '''
@@ -289,6 +297,231 @@ class GDAL_func:
         df = pd.DataFrame(data=data, columns=columns[0])
         return df
 
+    def RGBA_to_tif(self,blend_arr,outf,tif_template):
+        img = Image.fromarray(blend_arr.astype('uint8'), 'RGBA')
+        img.save(outf)
+        # define a projection and extent
+        raster = gdal.Open(outf)
+        geotransform = raster.GetGeoTransform()
+        originX, originY, pixelWidth, pixelHeight = GDAL_func().get_raster_transformations(tif_template)
+        raster.SetGeoTransform((originX, pixelWidth, 0, originY, 0, pixelHeight))
+        outRasterSRS = osr.SpatialReference()
+        projection = GDAL_func().get_raster_projections(tif_template)
+        # outRasterSRS.ImportFromEPSG(4326)
+        # outRasterSRS.ImportFromEPSG(projection)
+        # raster.SetProjection(outRasterSRS.ExportToWkt())
+        raster.SetProjection(projection)
+        pass
+
+class Bivariate_plot_1:
+
+    def __init__(self,
+                 res = 7,
+                 alpha = 200,
+                 upper_left_color = (255,202, 202), #
+                 upper_right_color = (148, 202, 112), #
+                 lower_left_color = (110,0, 0), #
+                 lower_right_color = (0, 0, 110), #
+                 center_color = (240,240, 240), #
+                 ):
+        self.res = res
+        self.alpha = alpha
+        self.upper_left_color = upper_left_color
+        self.upper_right_color = upper_right_color
+        self.lower_left_color = lower_left_color
+        self.lower_right_color = lower_right_color
+        self.center_color = center_color
+        self.rgb_arr = self.grid_rectangle_legend()
+        pass
+
+    def test(self):
+        tif1 = ''
+        tif2 = ''
+        tif1_label = 'label1'
+        tif2_label = 'label2'
+        min2 = -.1
+        max2 = .1
+        min1 = 0
+        max1 = 5
+        outtif = ''
+        self.plot_bivariate(tif1, tif2, tif1_label, tif2_label, min1, max1, min2, max2,outtif)
+
+    def grid_rectangle_legend(self):
+        upper_left_color = self.upper_left_color
+        upper_right_color = self.upper_right_color
+        lower_left_color = self.lower_left_color
+        lower_right_color = self.lower_right_color
+        center_color = self.center_color
+        res = self.res
+
+        # top_pos = (0.5, np.cos(np.pi / 6))
+        # left_pos = (0, 0)
+        # right_pos = (1, 0)
+        # center_pos = (0.5, 0.5 * np.tan(np.pi / 6))
+
+        upper_left_pos = (0, 1)
+        upper_right_pos = (1, 1)
+        lower_left_pos = (0, 0)
+        lower_right_pos = (1, 0)
+
+        center_pos = (0.5, 0.5)
+
+        x = [upper_left_pos[0], upper_right_pos[0], lower_left_pos[0], lower_right_pos[0], center_pos[0]]
+        y = [upper_left_pos[1], upper_right_pos[1], lower_left_pos[1], lower_right_pos[1], center_pos[1]]
+
+        band1 = [upper_left_color[0], upper_right_color[0], lower_left_color[0], lower_right_color[0], center_color[0]]
+        band2 = [upper_left_color[1], upper_right_color[1], lower_left_color[1], lower_right_color[1], center_color[1]]
+        band3 = [upper_left_color[2], upper_right_color[2], lower_left_color[2], lower_right_color[2], center_color[2]]
+
+        grid_x, grid_y = np.mgrid[min(x):max(x):complex(0, res), min(y):max(y):complex(0, res)]
+
+        grid_band1 = griddata((x, y), band1, (grid_x, grid_y), method='cubic') / 255
+        grid_band2 = griddata((x, y), band2, (grid_x, grid_y), method='cubic') / 255
+        grid_band3 = griddata((x, y), band3, (grid_x, grid_y), method='cubic') / 255
+
+        grid_band1[np.isnan(grid_band1)] = 1
+        grid_band2[np.isnan(grid_band2)] = 1
+        grid_band3[np.isnan(grid_band3)] = 1
+
+        grid_band1[grid_band1 < 0] = 0
+        grid_band2[grid_band2 < 0] = 0
+        grid_band3[grid_band3 < 0] = 0
+        grid_band1[grid_band1 > 1] = 1
+        grid_band2[grid_band2 > 1] = 1
+        grid_band3[grid_band3 > 1] = 1
+
+        grid_band1 = np.array(grid_band1, dtype=float)
+        grid_band2 = np.array(grid_band2, dtype=float)
+        grid_band3 = np.array(grid_band3, dtype=float)
+
+        grid_band1_T = grid_band1.T
+        grid_band2_T = grid_band2.T
+        grid_band3_T = grid_band3.T
+
+        grid_band4 = np.ones_like(grid_band1_T) * self.alpha / 255
+        # print(grid_band4)
+        # exit()
+
+
+        rgb_arr = np.dstack((grid_band1_T, grid_band2_T, grid_band3_T, grid_band4))
+        # rgb_arr = np.dstack((grid_band1, grid_band2, grid_band3))
+        rgb_arr = np.array(rgb_arr, dtype=float)
+
+        # plt.imshow(rgb_arr)
+        # plt.show()
+
+        return rgb_arr
+
+
+    def get_color(self,x,y):
+        rgb_arr = self.rgb_arr
+        # point_x, point_y = self.get_point_position(x,y)
+        r = int(x)
+        c = int(y)
+        # if r < 0:
+        #     r = 1
+        # if c < 0:
+        #     c = 1
+        if r > len(rgb_arr) - 1:
+            r = len(rgb_arr) - 1
+        if c > len(rgb_arr[0]) - 1:
+            c = len(rgb_arr[0]) - 1
+        color = rgb_arr[c][r]
+        # plt.scatter([int(point_x)], [int(point_y)], c=[color], s=100, edgecolors='gray', zorder=100)
+        # plt.text(point_x, point_y, str(point))
+        # plt.imshow(rgb_arr)
+        # plt.axis('equal')
+        # plt.axis('off')
+        # plt.show()
+        return color
+
+    def plot_bivariate(
+            self,tif1, tif2,
+            tif1_label, tif2_label,
+            min1, max1,
+            min2, max2,
+            outtif,
+            n_x = 6, n_y = 5):
+        # tif1, tif2, tif1_label, tif2_label, min1, max1, min2, max2, outf,
+        # n = (5, 5), n_legend = (101, 101), zcmap = None, legend_title = ''
+
+        arr_template = GDAL_func().raster2array(tif1)
+        spatial_dict1 = GDAL_func().tif_to_spatial_dic(tif1)
+        spatial_dict2 = GDAL_func().tif_to_spatial_dic(tif2)
+        # spatial_dict1 = lytools.DIC_and_TIF(tif_template=tif1).spatial_tif_to_dic(tif1)
+        # spatial_dict2 = lytools.DIC_and_TIF(tif_template=tif2).spatial_tif_to_dic(tif2)
+
+        spatial_dict_all = {
+            tif1_label: spatial_dict1,
+            tif2_label: spatial_dict2
+        }
+
+        df = GDAL_func().spatial_dics_to_df(spatial_dict_all)
+        df = df.dropna(how='any')
+        result_arr = []
+        for i in range(len(arr_template)):
+            result_arr.append([])
+            for j in range(len(arr_template[0])):
+                result_arr[i].append([0,0,0,0])
+        # x_pos = []
+        # y_pos = []
+        for i,row in df.iterrows():
+            val1 = row[tif1_label]
+            val2 = row[tif2_label]
+            x = (val1 - min1) / (max1 - min1) * self.res
+            y = (val2 - min2) / (max2 - min2) * self.res
+            x = int(round(x, 0))
+            y = int(round(y, 0))
+            if x < 0:
+                x = 0
+            if x > self.res - 1:
+                x = self.res - 1
+            if y < 0:
+                y = 0
+            if y > self.res - 1:
+                y = self.res - 1
+
+            color = self.get_color(x, y)
+            r,g,b,a = color
+            r = int(r * 255)
+            g = int(g * 255)
+            b = int(b * 255)
+            a = int(a * 255)
+            color_arr = [r,g,b,a]
+            # print(color)
+            # exit()
+            pix = row['pix']
+            r,c = pix
+            result_arr[r][c] = color_arr
+        # outf = '/Volumes/NVME2T/China_drought_response/results/statistic/Bivariate_statistic/tif/xy_map_lag/SPEI03/bivariate.tif'
+        result_arr = np.array(result_arr, dtype=np.uint8)
+        GDAL_func().RGBA_to_tif(result_arr, outtif,tif1)
+        plt.figure(figsize=(5, 5))
+        plt.imshow(self.rgb_arr[::-1])
+        plt.xlabel(tif1_label)
+        plt.ylabel(tif2_label)
+
+        x_ticklabels = np.linspace(min1, max1, n_x)
+        y_ticklabels = np.linspace(min2, max2, n_y)[::-1]
+        x_ticklabels = np.round(x_ticklabels, 2)
+        y_ticklabels = np.round(y_ticklabels, 2)
+        xticks = np.linspace(0, self.res, n_x)
+        yticks = np.linspace(0, self.res, n_y)
+
+        plt.xticks(xticks, x_ticklabels)
+        plt.yticks(yticks, y_ticklabels)
+        outpdf = outtif.replace('.tif', '.pdf')
+        plt.savefig(outpdf)
+        plt.close()
+
+    def palette_choice1(self):
+        alpha = 200,
+        upper_left_color = (255, 202, 202),
+        upper_right_color = (148, 202, 112),
+        lower_left_color = (110, 0, 0),
+        lower_right_color = (0, 0, 110),
+        center_color = (240, 240, 240),
+        pass
 
 class Ternary_plot:
 
@@ -431,7 +664,8 @@ class Test:
         pass
 
 def main():
-    Ternary_plot().test()
+    # Ternary_plot().test()
+    Bivariate_plot_1().run()
     pass
 
 if __name__ == '__main__':
